@@ -1949,20 +1949,6 @@
 
     <div class="builder-card reveal reveal-delay-2">
 
-      <!-- Claude API Key -->
-      <div class="builder-field" id="apiKeyField">
-        <div class="builder-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          Claude API Key
-          <a href="https://console.anthropic.com/settings/keys" target="_blank" style="font-size:.72rem;color:var(--green-mid);letter-spacing:.1em;font-weight:300;text-decoration:none;margin-left:.4rem;">取得 API Key →</a>
-        </div>
-        <div style="position:relative;">
-          <input id="b-apikey" class="builder-input" type="password" placeholder="貼上你的 Claude API Key（sk-ant-…）" autocomplete="off">
-          <button onclick="const i=document.getElementById('b-apikey');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:.8rem;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:.8rem;font-family:var(--sans-zh);letter-spacing:.06em;">顯示</button>
-        </div>
-        <p style="font-family:var(--sans-zh);font-size:.75rem;color:var(--text-muted);margin-top:.5rem;letter-spacing:.05em;font-weight:300;">Key 僅在你的瀏覽器本地使用，不會上傳至任何伺服器。</p>
-      </div>
-
       <!-- 目的地 -->
       <div class="builder-field">
         <div class="builder-label">
@@ -1983,11 +1969,15 @@
           <label for="d4">4 天</label>
           <input class="days-pill" type="radio" name="days" id="d5" value="5天">
           <label for="d5">5 天</label>
-          <input class="days-pill" type="radio" name="days" id="d6" value="6天">
-          <label for="d6">6 天</label>
-          <input class="days-pill" type="radio" name="days" id="d7" value="7天以上">
-          <label for="d7">7 天以上</label>
         </div>
+        <p style="font-family:var(--sans-zh);font-size:.8rem;color:var(--text-muted);margin-top:.6rem;letter-spacing:.05em;font-weight:300;">
+          6 天以上請直接
+          <a href="https://line.me/R/ti/p/填入你的LINE_ID" target="_blank" rel="noopener"
+             style="color:#06C755;text-decoration:none;font-weight:400;display:inline-flex;align-items:center;gap:.25rem;">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="#06C755"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+            洽詢旅遊顧問
+          </a>
+        </p>
       </div>
 
       <!-- 旅行風格 -->
@@ -2188,6 +2178,10 @@
   mobileClose.addEventListener('click', closeMobile);
 
   // ── AI ITINERARY BUILDER ──
+  // 目前直接呼叫 Gemini API；之後設好 Cloudflare Worker 後只需把 GEMINI_ENDPOINT 換成 Worker 網址即可
+  const GEMINI_API_KEY = 'AIzaSyAy-UnYRwIU0tizrVeQTwPFwmyaK3LSPYY';
+  const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite-preview:streamGenerateContent?alt=sse&key=${GEMINI_API_KEY}`;
+
   const btnGenerate = document.getElementById('btnGenerate');
   const btnCopyForm = document.getElementById('btnCopyForm');
   const btnCopyResult = document.getElementById('btnCopyResult');
@@ -2236,32 +2230,13 @@
     resultBody.classList.add('streaming');
     document.getElementById('resultQuoteRow').classList.remove('visible');
 
-    const apiKey = document.getElementById('b-apikey').value.trim();
-    if (!apiKey) {
-      document.getElementById('b-apikey').focus();
-      document.getElementById('b-apikey').style.borderColor = 'var(--earth)';
-      setTimeout(() => document.getElementById('b-apikey').style.borderColor = '', 1500);
-      resultBody.textContent = '⚠ 請先輸入 Claude API Key。';
-      resultBody.classList.remove('streaming');
-      btnGenerate.classList.remove('loading');
-      btnGenerate.disabled = false;
-      return;
-    }
-
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const response = await fetch(GEMINI_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          model: 'claude-haiku-4-5-20251001',
-          max_tokens: 1200,
-          stream: true,
-          messages: [{ role: 'user', content: buildPrompt(data) }]
+          contents: [{ parts: [{ text: buildPrompt(data) }] }],
+          generationConfig: { maxOutputTokens: 1500, temperature: 0.85 }
         })
       });
 
@@ -2288,15 +2263,16 @@
           if (!raw || raw === '[DONE]') continue;
           try {
             const evt = JSON.parse(raw);
-            if (evt.type === 'content_block_delta' && evt.delta?.text) {
-              resultBody.textContent += evt.delta.text;
+            const text = evt?.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              resultBody.textContent += text;
               resultBody.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
           } catch {}
         }
       }
     } catch (err) {
-      resultBody.textContent = '⚠ 暫時無法連線，請確認 API Key 是否正確後再試。';
+      resultBody.textContent = '⚠ 暫時無法連線，請稍後再試。';
     } finally {
       resultBody.classList.remove('streaming');
       if (resultBody.textContent.length > 20) {
